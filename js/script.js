@@ -15,7 +15,7 @@ $(window).ready(function () {
        score: 2.5
    });
 
-    init();
+    initCategories(true);
 
     var btn_save = $("#save-btn");
     var btn_cancel = $("#cancel-btn");
@@ -31,8 +31,7 @@ $(window).ready(function () {
     var cook_categories = {};
     var dish = {}; //блюдо
 
-    function init() {
-        //Запрос Категорий блюд
+    function initCategories(flag) {
         $.ajax({
             url: "/assets/json/category.json",
             type: "POST",
@@ -43,43 +42,43 @@ $(window).ready(function () {
                 $(select).clone(true).appendTo($("#select-container"));
                 $(select).clone(true).appendTo($("#add-select-container"));
 
-                initTags();
+                if (flag) initTags();
             }
         });
-
-        function initTags() {
-            //Запрос Тегов
-            $.ajax({
-                url: "/assets/json/tags.json",
-                type: "POST",
-                dataType: "json",
-                success: function (data) {
-                    createSelectTags(data);
-                    initIngredients(0);     //Ajax запрос ингредиентов
-                }
-            });
-        }
-
-        function initIngredients(i) {
-            i++;
-            $.ajax({
-                url: "/assets/ingridients/" + i + ".txt",
-                type: "POST",
-                dataType: "text",
-                success: function (data) {
-                    var ingredient = {};
-                    ingredient.id = i;
-                    ingredient.title = data;
-                    all_ingredients[all_ingredients.length] = ingredient;
-                    initIngredients(i)
-                },
-                error: function () {
-                    //Как только файлы на сервере закончились, начиаем обрабатывать полученные файлы. Создаем палитру блюд.
-                    createPalette();
-                }
-            });
-        }
     }
+
+    function initTags() {
+        $.ajax({
+            url: "/assets/json/tags.json",
+            type: "POST",
+            dataType: "json",
+            success: function (data) {
+                createSelectTags(data);
+                initIngredients(0);     //Ajax запрос ингредиентов
+            }
+        });
+    }
+
+    function initIngredients(i) {
+        i++;
+        $.ajax({
+            url: "/assets/ingridients/" + i + ".txt",
+            type: "POST",
+            dataType: "text",
+            success: function (data) {
+                var ingredient = {};
+                ingredient.id = i;
+                ingredient.title = data;
+                all_ingredients[all_ingredients.length] = ingredient;
+                initIngredients(i)
+            },
+            error: function () {
+                //Как только файлы на сервере закончились, начиаем обрабатывать полученные файлы. Создаем палитру блюд.
+                createPalette();
+            }
+        });
+    }
+
 
     btn_save.click(function () {
         var dish_ingredients = [];
@@ -129,12 +128,7 @@ $(window).ready(function () {
 
         difficulty.raty('score', 2.5);
 
-        //Очистка селек категорий
-        selects.first().val(-1);
-        while (selects.first().next().length)
-        {
-            selects.first().next().remove();
-        }
+        resetSelect(selects);
 
         //Оичтска ингредиентов
         $(".close").each(function (i, item) {
@@ -146,15 +140,49 @@ $(window).ready(function () {
 
     btn_modal_add.click(function () {
         var modal_selects = $("#add-select-container select");
-        var parent_id = (modal_selects.last().val() > 0) ? modal_selects.last().val() : modal_selects.last().prev().val();
-        var title = $("#new-title").val();
+        var request = {};
 
-        console.log(parent_id, title);
+        // request.request = "send";
+        if (modal_selects.last().val() > 0)
+        {
+            request.parent_id = +modal_selects.last().val();
+        }
+        else
+        {
+            if (modal_selects.last().prev().val())
+            {
+                request.parent_id = +modal_selects.last().prev().val();
+            }
+            else request.parent_id = null;
+        }
+        request.title = $("#new-title").val();
+
+        $.ajax({
+            url: "/backend/categories.php",
+            type: "POST",
+            data: "request=send" + "&category=" + JSON.stringify(request),
+            success: function () {
+                $("#select-container select").remove();
+                $("#add-select-container select").remove();
+                initCategories();
+            },
+            error: function () {
+
+            }
+        });
+
     });
+
+    function resetSelect(node) {
+        node.first().val(-1);
+        while (node.first().next().length)
+        {
+            node.first().next().remove();
+        }
+    }
 
     function createPalette() {
         //TODO проверка на пустой массив
-
         var palette_container = $("#palette");
         $.each(all_ingredients, function (i, item) {
             palette_container.append(
