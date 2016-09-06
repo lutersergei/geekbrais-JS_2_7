@@ -17,6 +17,7 @@
   ],
   "dependencies": {
     "bootstrap": "^3.3.7",
-    "jt.timepicker": "^1.11.3"
+    "jt.timepicker": "^1.11.3",
+    "raty": "^2.7.0"
   }
 }

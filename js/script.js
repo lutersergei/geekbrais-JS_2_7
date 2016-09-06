@@ -9,7 +9,10 @@ $(window).ready(function () {
     });
 
     // Инициализация counterfield
-    var counterfield = new CounterField('#counterfield_difficulty', {incrementStep: 1, decrementStep: 1, minValue: 1, maxValue: 5, defaultValue: 1}); //Плагин сложности
+   var difficulty = $('#difficulty').raty({
+       starType : 'i'
+   });
+
     get_ingridients(0);     //Ajax запрос ингредиентов
 
     var btn_save = $("#save-btn");
@@ -67,7 +70,7 @@ $(window).ready(function () {
         dish.title = title.val();
         dish.category = (selects.last().val() > 0) ? selects.last().val() : selects.last().prev().val(); //Если категория последнего select - "Без категорий", берем из предпоследнего select
         dish.visibility = checkbox.is(":checked");
-        dish.difficulty = counterfield.currentValue;
+        dish.difficulty = difficulty.raty('score');
         dish.tags = select_multiple.val();
         dish.ingredients = dish_ingredients;
         dish.time = cooking_time.timepicker('getSecondsFromMidnight')/60;     //Время приготовления в минутах.
