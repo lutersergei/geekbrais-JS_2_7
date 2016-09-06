@@ -1,5 +1,14 @@
 $(window).ready(function () {
 
+    // Инициализация timepicker
+    var cooking_time = $('#cooking-time').timepicker({
+        'timeFormat': 'H:i',
+        'minTime': '00:00',
+        'maxTime': '12:00',
+        'step': 5
+    });
+
+    // Инициализация counterfield
     var counterfield = new CounterField('#counterfield_difficulty', {incrementStep: 1, decrementStep: 1, minValue: 1, maxValue: 5, defaultValue: 1}); //Плагин сложности
     get_ingridients(0);     //Ajax запрос ингредиентов
 
@@ -61,6 +70,7 @@ $(window).ready(function () {
         dish.difficulty = counterfield.currentValue;
         dish.tags = select_multiple.val();
         dish.ingredients = dish_ingredients;
+        dish.time = cooking_time.timepicker('getSecondsFromMidnight')/60;     //Время приготовления в минутах.
 
         var dish_json = JSON.stringify(dish);
 
