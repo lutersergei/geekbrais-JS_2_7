@@ -1,0 +1,21 @@
+{
+  "name": "JS_2_7",
+  "authors": [
+    "lutersergei <luter.sergei@ya.ru>"
+  ],
+  "description": "GB Lesson JS2 7",
+  "main": "",
+  "license": "MIT",
+  "homepage": "recipe.124style.ru",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "vendor",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "bootstrap": "^3.3.7"
+  }
+}
