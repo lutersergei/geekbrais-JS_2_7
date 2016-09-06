@@ -11,13 +11,15 @@ $(window).ready(function () {
     // Инициализация counterfield
    var difficulty = $('#difficulty').raty({
        starType : 'i',
-       half: true
+       half: true,
+       score: 2.5
    });
 
     init();
 
     var btn_save = $("#save-btn");
     var btn_cancel = $("#cancel-btn");
+    var btn_modal_add = $(".remodal-confirm");
     var selects;
     var checkbox;
     var photo;
@@ -37,7 +39,10 @@ $(window).ready(function () {
             dataType: "json",
             success: function (data) {
                 cook_categories.categories = data.category;
-                $('[for="category"]').after(make_select_from_categories(get_categories(null)));
+                var select = make_select_from_categories(get_categories(null));
+                $(select).clone(true).appendTo($("#select-container"));
+                $(select).clone(true).appendTo($("#add-select-container"));
+
                 initTags();
             }
         });
@@ -120,8 +125,9 @@ $(window).ready(function () {
         photo.val("");
         title.val("");
         checkbox.prop('checked', false);
-        select_multiple.val("");
-        counterfield.currentValue = 1;
+        select_multiple.select2('val', 0);
+
+        difficulty.raty('score', 2.5);
 
         //Очистка селек категорий
         selects.first().val(-1);
@@ -136,6 +142,14 @@ $(window).ready(function () {
         });
 
         $("#json").empty();
+    });
+
+    btn_modal_add.click(function () {
+        var modal_selects = $("#add-select-container select");
+        var parent_id = (modal_selects.last().val() > 0) ? modal_selects.last().val() : modal_selects.last().prev().val();
+        var title = $("#new-title").val();
+
+        console.log(parent_id, title);
     });
 
     function createPalette() {
