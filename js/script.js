@@ -10,10 +10,11 @@ $(window).ready(function () {
 
     // Инициализация counterfield
    var difficulty = $('#difficulty').raty({
-       starType : 'i'
+       starType : 'i',
+       half: true
    });
 
-    get_ingridients(0);     //Ajax запрос ингредиентов
+    init();
 
     var btn_save = $("#save-btn");
     var btn_cancel = $("#cancel-btn");
@@ -28,26 +29,52 @@ $(window).ready(function () {
     var cook_categories = {};
     var dish = {}; //блюдо
 
-    //Запрос Категорий блюд
-    $.ajax({
-        url: "/assets/json/category.json",
-        type: "POST",
-        dataType: "json",
-        success: function (data) {
-            cook_categories.categories = data.category;
-            $('[for="category"]').after(make_select_from_categories(get_categories(null)));
-        }
-    });
+    function init() {
+        //Запрос Категорий блюд
+        $.ajax({
+            url: "/assets/json/category.json",
+            type: "POST",
+            dataType: "json",
+            success: function (data) {
+                cook_categories.categories = data.category;
+                $('[for="category"]').after(make_select_from_categories(get_categories(null)));
+                initTags();
+            }
+        });
 
-    //Запрос Тегов
-    $.ajax({
-        url: "/assets/json/tags.json",
-        type: "POST",
-        dataType: "json",
-        success: function (data) {
-            createSelectTags(data)
+        function initTags() {
+            //Запрос Тегов
+            $.ajax({
+                url: "/assets/json/tags.json",
+                type: "POST",
+                dataType: "json",
+                success: function (data) {
+                    createSelectTags(data);
+                    initIngredients(0);     //Ajax запрос ингредиентов
+                }
+            });
         }
-    });
+
+        function initIngredients(i) {
+            i++;
+            $.ajax({
+                url: "/assets/ingridients/" + i + ".txt",
+                type: "POST",
+                dataType: "text",
+                success: function (data) {
+                    var ingredient = {};
+                    ingredient.id = i;
+                    ingredient.title = data;
+                    all_ingredients[all_ingredients.length] = ingredient;
+                    initIngredients(i)
+                },
+                error: function () {
+                    //Как только файлы на сервере закончились, начиаем обрабатывать полученные файлы. Создаем палитру блюд.
+                    createPalette();
+                }
+            });
+        }
+    }
 
     btn_save.click(function () {
         var dish_ingredients = [];
@@ -110,26 +137,6 @@ $(window).ready(function () {
 
         $("#json").empty();
     });
-
-    function get_ingridients(i) {
-        i++;
-        $.ajax({
-            url: "/assets/ingridients/" + i + ".txt",
-            type: "POST",
-            dataType: "text",
-            success: function (data) {
-                var ingredient = {};
-                ingredient.id = i;
-                ingredient.title = data;
-                all_ingredients[all_ingredients.length] = ingredient;
-                get_ingridients(i)
-            },
-            error: function () {
-                //Как только файлы на сервере закончились, начиаем обрабатывать полученные файлы. Создаем палитру блюд.
-                createPalette();
-            }
-        });
-    }
 
     function createPalette() {
         //TODO проверка на пустой массив
@@ -237,10 +244,18 @@ $(window).ready(function () {
 
     function createSelectTags(data) {
         select_multiple = $("#tags");
-        $.each(data.tags, function (i, item) {
-            var option = $("<option/>", {value: item.id, text: item.title});
-            select_multiple.append(option);
-        })
+
+        var tags = $.map(data.tags, function (obj) {
+            obj.text = obj.text || obj.title; // replace name with the property used for the text
+            return obj;
+        });
+
+        select_multiple.select2({
+            data: tags,
+            placeholder: "Выберите или добавьте теги",
+            tags: true,
+            allowClear: true
+        });
     }
 
     $("#photo-url").change(
